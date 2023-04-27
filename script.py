@@ -1,4 +1,3 @@
-import pandas as pd
 import time
 import boto3
 import os
@@ -12,10 +11,12 @@ import spacy
 from collections import Counter
 from string import punctuation
 import en_core_web_md
+import urllib.request
+import json
 
 
-AWS_ACCESS_KEY_ID = "AKIA4HK6S6KQY5HLUJWM"
-AWS_SECRET_ACCESS_KEY = "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"
+AWS_ACCESS_KEY_ID = ""
+AWS_SECRET_ACCESS_KEY = ""
 
 ANSWER_FILE_NAME = "answer.wav"
 BOOP_FILE_NAME = "boop.mp3"
@@ -60,8 +61,12 @@ def amazon_transcribe(audio_file_name, transcribe):
             break
         time.sleep(2)
     if result['TranscriptionJob']['TranscriptionJobStatus'] == "COMPLETED":
-        data = pd.read_json(result['TranscriptionJob']['Transcript']['TranscriptFileUri'])
-        return data['results'][1][0]['transcript']
+        data = result['TranscriptionJob']['Transcript']['TranscriptFileUri']
+        urllib.request.urlretrieve(data, "data.json")
+
+        f = open('data.json')
+        json_data = json.load(f)
+        return json_data['results']['transcripts'][0]['transcript']
 
 def get_hotwords(text):
     nlp = en_core_web_md.load()
