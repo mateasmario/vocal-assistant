@@ -5,9 +5,30 @@ import os
 import wave
 from pvrecorder import PvRecorder
 import struct
+import gtts
+import sounddevice as sd
+import soundfile as sf
+import spacy
+from collections import Counter
+from string import punctuation
+import en_core_web_md
+
 
 AWS_ACCESS_KEY_ID = ""
 AWS_SECRET_ACCESS_KEY = ""
+
+ANSWER_FILE_NAME = "answer.wav"
+BOOP_FILE_NAME = "boop.mp3"
+DING_FILE_NAME = "ding.mp3"
+
+GENERIC_ANSWER = "I'm sorry, but I didn't understand the question. Could you please try again?"
+
+def playaudio(path, wait):
+    data, fs = sf.read(path, dtype='float32')  
+    sd.play(data, fs)
+
+    if wait == True:
+        status = sd.wait()
 
 def check_job_name(job_name, transcribe):
     existed_jobs = transcribe.list_transcription_jobs()
@@ -42,6 +63,26 @@ def amazon_transcribe(audio_file_name, transcribe):
         data = pd.read_json(result['TranscriptionJob']['Transcript']['TranscriptFileUri'])
         return data['results'][1][0]['transcript']
 
+def get_hotwords(text):
+    nlp = en_core_web_md.load()
+    result = []
+    pos_tag = ['PROPN', 'ADJ', 'NOUN'] # 1
+    doc = nlp(text.lower()) # 2
+    for token in doc:
+        # 3
+        if(token.text in nlp.Defaults.stop_words or token.text in punctuation):
+            continue
+        # 4
+        if(token.pos_ in pos_tag):
+            result.append(token.text)
+                
+    return result # 5
+
+def get_answer(text):    
+    processed_text = set(get_hotwords(text))
+    print(processed_text)
+
+    return GENERIC_ANSWER
 
 def main():
     transcribe = boto3.client("transcribe", 
@@ -60,16 +101,20 @@ def main():
             audio.extend(frame)
     except KeyboardInterrupt:
         recorder.stop()
+
         with wave.open("audio.wav", 'w') as f:
+            
             # Save audio file on local drive
-            print("Saving audio file on local drive...")
+            print("[1] Saving audio file on local drive...")
+            playaudio(BOOP_FILE_NAME, wait=False)
             f.setparams((1, 2, 16000, 512, "NONE", "NONE"))
             f.writeframes(struct.pack("h" * len(audio), *audio))
 
             time.sleep(2)
 
             # Upload audio file on Amazon S3
-            print("Uploading audio on Amazon S3...")
+            print("[2] Uploading audio on Amazon S3...")
+            playaudio(BOOP_FILE_NAME, wait=False)
             bucket = "dianamarioawsbucket"
             session = boto3.Session(
                 aws_access_key_id=AWS_ACCESS_KEY_ID,
@@ -82,9 +127,21 @@ def main():
             s3.meta.client.upload_file(Filename='audio.wav', Bucket=bucket, Key='audio.wav')
 
             # Create an Amazon Transcribe job
-            print("Creating an Amazon Transcribe job...")
+            print("[3] Creating an Amazon Transcribe job...")        
+            playaudio(BOOP_FILE_NAME, wait=False)
             result = amazon_transcribe("audio.wav", transcribe)
-            print(result)
+            print("[*] Transcribe job successfully created.\n[*] Output: " + result)
+            playaudio(DING_FILE_NAME, wait=True)
+
+            # Process text using NLTK and get answer
+            answer = get_answer(result) 
+
+            # Output voice
+            print("[4] Playing answer...")
+            tts = gtts.gTTS(answer)
+            tts.save(ANSWER_FILE_NAME)
+            playaudio(ANSWER_FILE_NAME, wait=True)
+            
 
     finally:
         recorder.delete()

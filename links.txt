@@ -3,3 +3,6 @@ https://dianamarioawsbucket.s3.eu-central-1.amazonaws.com/
 
 "A quick tutorial to AWS Transcribe with Python"
 https://towardsdatascience.com/a-quick-tutorial-to-aws-transcribe-with-python-53bbf6605a55
+
+"How to Convert Text to Speech in Python"
+https://www.thepythoncode.com/article/convert-text-to-speech-in-python
