@@ -6,3 +6,6 @@ https://towardsdatascience.com/a-quick-tutorial-to-aws-transcribe-with-python-53
 
 "How to Convert Text to Speech in Python"
 https://www.thepythoncode.com/article/convert-text-to-speech-in-python
+
+"Spacy"
+https://www.digitalocean.com/community/tutorials/how-to-create-an-intelligent-chatbot-in-python-using-the-spacy-nlp-library

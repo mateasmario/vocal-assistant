@@ -14,8 +14,8 @@ from string import punctuation
 import en_core_web_md
 
 
-AWS_ACCESS_KEY_ID = ""
-AWS_SECRET_ACCESS_KEY = ""
+AWS_ACCESS_KEY_ID = "AKIA4HK6S6KQY5HLUJWM"
+AWS_SECRET_ACCESS_KEY = "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"
 
 ANSWER_FILE_NAME = "answer.wav"
 BOOP_FILE_NAME = "boop.mp3"
@@ -66,7 +66,7 @@ def amazon_transcribe(audio_file_name, transcribe):
 def get_hotwords(text):
     nlp = en_core_web_md.load()
     result = []
-    pos_tag = ['PROPN', 'ADJ', 'NOUN'] # 1
+    pos_tag = ['PROPN', 'ADJ', 'NOUN']
     doc = nlp(text.lower()) # 2
     for token in doc:
         # 3
