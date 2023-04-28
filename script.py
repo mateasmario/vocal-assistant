@@ -7,20 +7,19 @@ import struct
 import gtts
 import sounddevice as sd
 import soundfile as sf
-import spacy
 from collections import Counter
 from string import punctuation
-import en_core_web_md
 import urllib.request
 import json
+from pydub import AudioSegment
 
 
-AWS_ACCESS_KEY_ID = ""
-AWS_SECRET_ACCESS_KEY = ""
+AWS_ACCESS_KEY_ID = "AKIA4HK6S6KQ4YN3COJW"
+AWS_SECRET_ACCESS_KEY = "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"
 
-ANSWER_FILE_NAME = "answer.wav"
-BOOP_FILE_NAME = "boop.mp3"
-DING_FILE_NAME = "ding.mp3"
+ANSWER_FILE_NAME = "answer"
+BOOP_FILE_NAME = "boop.wav"
+DING_FILE_NAME = "ding.wav"
 
 GENERIC_ANSWER = "I'm sorry, but I didn't understand the question. Could you please try again?"
 
@@ -69,23 +68,10 @@ def amazon_transcribe(audio_file_name, transcribe):
         return json_data['results']['transcripts'][0]['transcript']
 
 def get_hotwords(text):
-    nlp = en_core_web_md.load()
-    result = []
-    pos_tag = ['PROPN', 'ADJ', 'NOUN']
-    doc = nlp(text.lower()) # 2
-    for token in doc:
-        # 3
-        if(token.text in nlp.Defaults.stop_words or token.text in punctuation):
-            continue
-        # 4
-        if(token.pos_ in pos_tag):
-            result.append(token.text)
-                
-    return result # 5
+    return text
 
 def get_answer(text):    
     processed_text = set(get_hotwords(text))
-    print(processed_text)
 
     return GENERIC_ANSWER
 
@@ -144,8 +130,17 @@ def main():
             # Output voice
             print("[4] Playing answer...")
             tts = gtts.gTTS(answer)
-            tts.save(ANSWER_FILE_NAME)
-            playaudio(ANSWER_FILE_NAME, wait=True)
+            tts.save(ANSWER_FILE_NAME + ".mp3")
+            
+            # assign files
+            input_file = "answer.mp3"
+            output_file = "answer.wav"
+              
+            # convert mp3 file to wav file
+            sound = AudioSegment.from_mp3(input_file)
+            sound.export(output_file, format="wav")
+            
+            playaudio(ANSWER_FILE_NAME + ".wav", wait=True)
             
 
     finally:
@@ -153,3 +148,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

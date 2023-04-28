@@ -1,0 +1,29 @@
+# STEP 1: Install requirements
+sudo apt update/upgrade
+sudo apt-get install cmake
+sudo apt-get install libffi-dev
+
+# STEP 2: Compile your own pvrecorder (because why not)
+git clone https://github.com/Picovoice/pvrecorder
+cd pvrecorder
+git submodule update --init --recursive
+mkdir build && cd build
+CFLAGS=-m32 CXXFLAGS=-m32 cmake .. -DOUTPUT_DIR={OUTPUT_DIR}
+CFLAGS=-m32 CXXFLAGS=-m32 cmake --build .
+
+# STEP 3: Create your venv
+python3 -m venv venv
+source venv/bin/activate
+pip3 install pvrecorder
+
+# STEP 4: Copy .so file from pvrecorder/build to venv/../pvrecorder/i686/*.so
+
+# STEP 5:
+pip install boto3
+pip install gtts
+pip install wheel
+pip install sounddevice
+sudo apt-get install libportaudio2
+pip install soundfile
+pip3 install numpy
+pip3 install pydub
