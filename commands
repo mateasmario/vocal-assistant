@@ -1,9 +1,41 @@
-# STEP 1: Install requirements
+# STEP 0: OPTIONAL SETUP. Install pyenv and an older version of Python
+curl https://pyenv.run | bash
+Restart terminal
+echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
+echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
+echo 'eval "$(pyenv init -)"' >> ~/.bashrc
+echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.profile
+echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.profile
+echo 'eval "$(pyenv init -)"' >> ~/.profile
+exec "$SHELL"
+Try command "pyenv"
+
+sudo apt-get install -y make build-essential libssl-dev zlib1g-dev libbz2-dev \
+libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev \
+xz-utils tk-dev libffi-dev liblzma-dev python-openssl git
+
+pyenv install 3.6.15
+pyenv global 3.6.15
+
+# STEP 1: OPTIONAL SETUP: IN CASE YOU CANNOT UPLOAD TO S3
+sudo apt-get install ntp
+Go to /etc/
+sudo nano ntp.conf
+paste:
+	server 0.amazon.pool.ntp.org iburst
+	server 1.amazon.pool.ntp.org iburst
+	server 2.amazon.pool.ntp.org iburst
+	server 3.amazon.pool.ntp.org iburst
+sudo service ntp restart
+
+
+# STEP 2: Install requirements
 sudo apt update/upgrade
 sudo apt-get install cmake
 sudo apt-get install libffi-dev
 
-# STEP 2: Compile your own pvrecorder (because why not)
+
+# STEP 3: Compile your own pvrecorder (because why not)
 git clone https://github.com/Picovoice/pvrecorder
 cd pvrecorder
 git submodule update --init --recursive
@@ -11,19 +43,23 @@ mkdir build && cd build
 CFLAGS=-m32 CXXFLAGS=-m32 cmake .. -DOUTPUT_DIR={OUTPUT_DIR}
 CFLAGS=-m32 CXXFLAGS=-m32 cmake --build .
 
-# STEP 3: Create your venv
+
+# STEP 4: Create your venv
 python3 -m venv venv
 source venv/bin/activate
 pip3 install pvrecorder
 
-# STEP 4: Copy .so file from pvrecorder/build to venv/../pvrecorder/i686/*.so
 
-# STEP 5:
-pip install boto3
-pip install gtts
-pip install wheel
-pip install sounddevice
+# STEP 5: Copy libpy_pvrecorder.so file from pvrecorder/build to venv/lib/python3.7/site-packages/pvrecorder/lib/linux/i686/ (create folder i686 there)
+
+
+# STEP 6: Install pip modules required for the project
+python -m pip install -U pip setuptools wheel
+pip3 install boto3
+pip3 install gtts
+pip3 install sounddevice
 sudo apt-get install libportaudio2
-pip install soundfile
+pip3 install soundfile
 pip3 install numpy
 pip3 install pydub
+pip3 install requests

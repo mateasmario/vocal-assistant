@@ -12,16 +12,28 @@ from string import punctuation
 import urllib.request
 import json
 from pydub import AudioSegment
+import requests
 
+AWS_ACCESS_KEY_ID = ""
+AWS_SECRET_ACCESS_KEY = ""
 
-AWS_ACCESS_KEY_ID = "AKIA4HK6S6KQ4YN3COJW"
-AWS_SECRET_ACCESS_KEY = "cqqcK94d4AfI4e2ovjAlKtw546fo2ZqxhFrUvkSg"
+questions = [
+    'What\'s the room temperature?',
+    'What\'s your name?'
+]
+
+headers = {
+    'Content-Type': 'application/json',
+    'X-Twaip-Key': '',
+}
 
 ANSWER_FILE_NAME = "answer"
 BOOP_FILE_NAME = "boop.wav"
 DING_FILE_NAME = "ding.wav"
 
 GENERIC_ANSWER = "I'm sorry, but I didn't understand the question. Could you please try again?"
+NAME_ANSWER = "My name is Mariana."
+TEMPERATURE_ANSWER = "The room temperature is "
 
 def playaudio(path, wait):
     data, fs = sf.read(path, dtype='float32')  
@@ -67,13 +79,34 @@ def amazon_transcribe(audio_file_name, transcribe):
         json_data = json.load(f)
         return json_data['results']['transcripts'][0]['transcript']
 
-def get_hotwords(text):
-    return text
+def get_temperature():
+    return str(0)
 
-def get_answer(text):    
-    processed_text = set(get_hotwords(text))
+def get_answer(text):
+    params = {}
+    params['text1'] = text
+    max_similarity = 0
 
-    return GENERIC_ANSWER
+    best_question_index = 0
+
+    for question_index in range(0, len(questions)):
+        params['text2'] = questions[question_index]
+        
+        response = requests.get('https://api.twinword.com/api/text/similarity/latest/', headers=headers, params=params)
+        responseJson = response.json()
+        
+        curr_similarity = responseJson['similarity']
+        if curr_similarity > max_similarity:
+            max_similarity = curr_similarity
+            best_question_index = question_index
+            
+    if max_similarity <= 0.6:
+        return GENERIC_ANSWER
+    else:
+        if best_question_index == 0:
+            return TEMPERATURE_ANSWER + ' ' + get_temperature()
+        elif best_question_index == 1:
+            return NAME_ANSWER
 
 def main():
     transcribe = boto3.client("transcribe", 
