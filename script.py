@@ -19,7 +19,10 @@ AWS_SECRET_ACCESS_KEY = ""
 
 questions = [
     'What\'s the room temperature?',
-    'What\'s your name?'
+    'What\'s your name?',
+    'Tell me a joke.',
+    'Tell me a pun.',
+    'Do a backflip.'
 ]
 
 headers = {
@@ -34,6 +37,7 @@ DING_FILE_NAME = "ding.wav"
 GENERIC_ANSWER = "I'm sorry, but I didn't understand the question. Could you please try again?"
 NAME_ANSWER = "My name is Mariana."
 TEMPERATURE_ANSWER = "The room temperature is "
+BACKFLIP_ANSWER = "I don't think I am able to do a backflip."
 
 def playaudio(path, wait):
     data, fs = sf.read(path, dtype='float32')  
@@ -82,6 +86,16 @@ def amazon_transcribe(audio_file_name, transcribe):
 def get_temperature():
     return str(0)
 
+def get_joke():
+    response = requests.get("https://v2.jokeapi.dev/joke/Any")
+    responseJson = response.json()
+    return responseJson['setup'] + ' ' + responseJson['delivery']
+
+def get_pun():
+    response = requests.get("https://v2.jokeapi.dev/joke/Pun")
+    responseJson = response.json()
+    return responseJson['setup'] + ' ' + responseJson['delivery']
+
 def get_answer(text):
     params = {}
     params['text1'] = text
@@ -107,6 +121,12 @@ def get_answer(text):
             return TEMPERATURE_ANSWER + ' ' + get_temperature()
         elif best_question_index == 1:
             return NAME_ANSWER
+        elif best_question_index == 2:
+            return get_joke()
+        elif best_question_index == 3:
+            return get_pun()
+        elif best_question_index == 4:
+            return BACKFLIP_ANSWER
 
 def main():
     transcribe = boto3.client("transcribe", 
@@ -130,7 +150,6 @@ def main():
             
             # Save audio file on local drive
             print("[1] Saving audio file on local drive...")
-            playaudio(BOOP_FILE_NAME, wait=False)
             f.setparams((1, 2, 16000, 512, "NONE", "NONE"))
             f.writeframes(struct.pack("h" * len(audio), *audio))
 
@@ -138,7 +157,6 @@ def main():
 
             # Upload audio file on Amazon S3
             print("[2] Uploading audio on Amazon S3...")
-            playaudio(BOOP_FILE_NAME, wait=False)
             bucket = "dianamarioawsbucket"
             session = boto3.Session(
                 aws_access_key_id=AWS_ACCESS_KEY_ID,
@@ -152,10 +170,8 @@ def main():
 
             # Create an Amazon Transcribe job
             print("[3] Creating an Amazon Transcribe job...")        
-            playaudio(BOOP_FILE_NAME, wait=False)
             result = amazon_transcribe("audio.wav", transcribe)
             print("[*] Transcribe job successfully created.\n[*] Output: " + result)
-            playaudio(DING_FILE_NAME, wait=True)
 
             # Process text using NLTK and get answer
             answer = get_answer(result) 
