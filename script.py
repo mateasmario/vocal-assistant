@@ -22,7 +22,8 @@ questions = [
     'What\'s your name?',
     'Tell me a joke.',
     'Tell me a pun.',
-    'Do a backflip.'
+    'Do a backflip.',
+    'How many degrees are in the room?'
 ]
 
 headers = {
@@ -89,7 +90,9 @@ def get_temperature():
 def get_joke():
     response = requests.get("https://v2.jokeapi.dev/joke/Any")
     responseJson = response.json()
-    return responseJson['setup'] + ' ' + responseJson['delivery']
+    if 'setup' in responseJson:
+        return responseJson['setup'] + ' ' + responseJson['delivery']
+    return responseJson['joke']
 
 def get_pun():
     response = requests.get("https://v2.jokeapi.dev/joke/Pun")
@@ -127,6 +130,8 @@ def get_answer(text):
             return get_pun()
         elif best_question_index == 4:
             return BACKFLIP_ANSWER
+        elif best_question_index == 5:
+            return TEMPERATURE_ANSWER + ' ' + get_temperature()
 
 def main():
     transcribe = boto3.client("transcribe", 
