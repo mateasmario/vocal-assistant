@@ -13,6 +13,9 @@ import urllib.request
 import json
 from pydub import AudioSegment
 import requests
+import time
+import board
+import adafruit_dht
 
 AWS_ACCESS_KEY_ID = ""
 AWS_SECRET_ACCESS_KEY = ""
@@ -30,6 +33,8 @@ headers = {
     'Content-Type': 'application/json',
     'X-Twaip-Key': '',
 }
+
+dhtDevice = adafruit_dht.DHT22(board.D18)
 
 ANSWER_FILE_NAME = "answer"
 BOOP_FILE_NAME = "boop.wav"
@@ -85,7 +90,26 @@ def amazon_transcribe(audio_file_name, transcribe):
         return json_data['results']['transcripts'][0]['transcript']
 
 def get_temperature():
-    return str(0)
+    count = 0
+    temp = 0
+    
+    while True:
+        try:
+            if count == 5:
+                break
+                
+            temp = dhtDevice.temperature
+        except RuntimeError as error:
+            count+=1
+            print(error.args[0])
+            print("Mariana's attempts: " + str(count) + "/5")
+            time.sleep(2.0)
+            continue
+        except Exception as error:
+            dhtDevice.exit()
+            raise error
+        
+    return str(temp)
 
 def get_joke():
     response = requests.get("https://v2.jokeapi.dev/joke/Any")

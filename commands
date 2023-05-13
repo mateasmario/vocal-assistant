@@ -63,3 +63,5 @@ pip3 install soundfile
 pip3 install numpy
 pip3 install pydub
 pip3 install requests
+pip3 install adafruit-circuitpython-dht
+sudo apt-get install libgpiod2
