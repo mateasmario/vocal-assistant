@@ -24,10 +24,10 @@ import pymysql
 
 AWS_ACCESS_KEY_ID = ""
 AWS_SECRET_ACCESS_KEY = ""
-DB_HOST = "database-1.ci4xeuccpn1x.eu-north-1.rds.amazonaws.com"
-DB_USER = "admin"
-DB_PASS = "12345678"
-DB_NAME = "DB"
+DB_HOST = ""
+DB_USER = ""
+DB_PASS = ""
+DB_NAME = ""
 
 questions = [
     'What\'s the room temperature?',
