@@ -263,8 +263,6 @@ def main():
             
             playaudio(ANSWER_FILE_NAME + ".wav", wait=True)
             
-            publish_iot(result, answer)
-            
 
     finally:
         recorder.delete()
