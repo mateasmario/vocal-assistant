@@ -60,14 +60,13 @@ def insert_db(question, answer):
         with connection.cursor() as cursor:
             # Create a new record
             sql = "INSERT INTO MESSAGES (QUESTION, ANSWER) VALUES (%s, %s)"
-            cursor.execute(sql, (question, answer)
-
+            cursor.execute(sql, (question, answer))
+            
         # connection is not autocommit by default. So you must commit to save
         # your changes.
         connection.commit()
         
         print("Inserted data into RDS.")
-    
 
 def playaudio(path, wait):
     data, fs = sf.read(path, dtype='float32')  
@@ -252,4 +251,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
 
