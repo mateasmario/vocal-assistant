@@ -20,16 +20,14 @@ from awscrt import io, mqtt, auth, http
 from awsiot import mqtt_connection_builder
 import time as t
 import json
+import pymysql
 
 AWS_ACCESS_KEY_ID = ""
 AWS_SECRET_ACCESS_KEY = ""
-ENDPOINT = ""
-CLIENT_ID = "testDevice"
-PATH_TO_CERTIFICATE = "certificates/8e026a2ebcd1fd2ab47a4babfecbcaea60ec9b5dac24c8a26b3073bec8a221d5-certificate.pem.crt"
-PATH_TO_PRIVATE_KEY = "certificates/8e026a2ebcd1fd2ab47a4babfecbcaea60ec9b5dac24c8a26b3073bec8a221d5-private.pem.key"
-PATH_TO_AMAZON_ROOT_CA_1 = "certificates/root.pem"
-TOPIC = "test/testing"
-RANGE = 20
+DB_HOST = "database-1.ci4xeuccpn1x.eu-north-1.rds.amazonaws.com"
+DB_USER = "admin"
+DB_PASS = "12345678"
+DB_NAME = "DB"
 
 questions = [
     'What\'s the room temperature?',
@@ -56,37 +54,20 @@ NAME_ANSWER = "My name is Mariana."
 TEMPERATURE_ANSWER = "The room temperature is "
 BACKFLIP_ANSWER = "I don't think I am able to do a backflip."
 
-def publish_iot(question, answer):
-    event_loop_group = io.EventLoopGroup(1)
-    host_resolver = io.DefaultHostResolver(event_loop_group)
-    client_bootstrap = io.ClientBootstrap(event_loop_group, host_resolver)
-    mqtt_connection = mqtt_connection_builder.mtls_from_path(
-            endpoint=ENDPOINT,
-            cert_filepath=PATH_TO_CERTIFICATE,
-            pri_key_filepath=PATH_TO_PRIVATE_KEY,
-            client_bootstrap=client_bootstrap,
-            ca_filepath=PATH_TO_AMAZON_ROOT_CA_1,
-            client_id=CLIENT_ID,
-            clean_session=False,
-            keep_alive_secs=6
-            )
-    print("Connecting to {} with client ID '{}'...".format(
-            ENDPOINT, CLIENT_ID))
-    # Make the connect() call
-    connect_future = mqtt_connection.connect()
-    # Future.result() waits until a result is available
-    connect_future.result()
-    print("Connected!")
-    print('Begin Publish')
+def insert_db(question, answer):
+    connection = pymysql.connect(host=DB_HOST, user=DB_USER, password=DB_PASS, database=DB_NAME, cursorclass=pymysql.cursors.DictCursor)
+    with connection:
+        with connection.cursor() as cursor:
+            # Create a new record
+            sql = "INSERT INTO MESSAGES (QUESTION, ANSWER) VALUES ('Question?', 'Answer!')"
+            cursor.execute(sql)
+
+        # connection is not autocommit by default. So you must commit to save
+        # your changes.
+        connection.commit()
         
-    message = {"question" : question, "answer": answer}
-    mqtt_connection.publish(topic=TOPIC, payload=json.dumps(message), qos=mqtt.QoS.AT_LEAST_ONCE)
-    print("Published: '" + json.dumps(message) + "' to the topic: " + "'test/testing'")
-    t.sleep(0.1)
+        print("Inserted data into RDS.")
     
-    print('Publish End')
-    disconnect_future = mqtt_connection.disconnect()
-    disconnect_future.result()
 
 def playaudio(path, wait):
     data, fs = sf.read(path, dtype='float32')  
@@ -262,6 +243,8 @@ def main():
             sound.export(output_file, format="wav")
             
             playaudio(ANSWER_FILE_NAME + ".wav", wait=True)
+            
+            insert_db(result, answer)
             
 
     finally:
