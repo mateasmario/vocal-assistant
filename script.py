@@ -16,8 +16,6 @@ import requests
 import time
 import board
 import adafruit_dht
-from awscrt import io, mqtt, auth, http
-from awsiot import mqtt_connection_builder
 import time as t
 import json
 import pymysql
