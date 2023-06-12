@@ -81,7 +81,7 @@ def check_job_name(job_name, transcribe):
     return True
 
 def amazon_transcribe(audio_file_name, transcribe):
-    job_uri = "s3://dianamarioawsbucket/" + audio_file_name
+    job_uri = "s3://dianamarioawsbucketnew/" + audio_file_name
 
     timestamp = os.path.getmtime(audio_file_name)
     job_name = (audio_file_name.split('.')[0]).replace(" ", "") + str(timestamp)
@@ -207,7 +207,7 @@ def main():
 
             # Upload audio file on Amazon S3
             print("[2] Uploading audio on Amazon S3...")
-            bucket = "dianamarioawsbucket"
+            bucket = "dianamarioawsbucketnew"
             session = boto3.Session(
                 aws_access_key_id=AWS_ACCESS_KEY_ID,
                 aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
